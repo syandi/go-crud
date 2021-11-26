@@ -15,7 +15,8 @@ import (
 var NewBook models.Book
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	newBooks := models.GetAllBooks()
+	q := r.URL.Query().Get("q")
+	newBooks := models.GetAllBooks(q)
 	res, _ := json.Marshal(newBooks)
 	w.Header().Set("Content-Type", "pkglication/json")
 	w.WriteHeader(http.StatusOK)
