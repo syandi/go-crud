@@ -1,18 +1,22 @@
 package controllers
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"crud/pkg/models"
 	"crud/pkg/utils"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
 var NewBook models.Book
+var validate *validator.Validate
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
@@ -38,9 +42,27 @@ func Show(w http.ResponseWriter, r *http.Request) {
 }
 
 func Store(w http.ResponseWriter, r *http.Request) {
-	CreateBook := &models.Book{}
-	utils.ParseBody(r, CreateBook)
-	b := CreateBook.CreateBook()
+	var book = &models.Book{}
+	utils.ParseBody(r, book)
+
+	// validasi data
+	validate = validator.New()
+	// validate.RegisterCustomTypeFunc(ValidateValuer, sql.NullString{}, sql.NullInt64{}, sql.NullBool{}, sql.NullFloat64{})
+
+	// build object for validation
+	x := models.Book{Name: book.Name, Author: book.Author, Publication: book.Publication}
+
+	err := validate.Struct(x)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "pkglication/json")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	utils.ParseBody(r, book)
+	b := book.CreateBook()
 	res, _ := json.Marshal(b)
 	w.Header().Set("Content-Type", "pkglication/json")
 	w.WriteHeader(http.StatusOK)
@@ -85,4 +107,18 @@ func Destroy(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "pkglication/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
+}
+
+func ValidateValuer(field reflect.Value) interface{} {
+
+	if valuer, ok := field.Interface().(driver.Valuer); ok {
+
+		val, err := valuer.Value()
+		if err == nil {
+			return val
+		}
+		// handle the error how you want
+	}
+
+	return nil
 }

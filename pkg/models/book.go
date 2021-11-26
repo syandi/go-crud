@@ -3,16 +3,18 @@ package models
 import (
 	"crud/pkg/config"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/gorm"
 )
 
 var db *gorm.DB
+var validate *validator.Validate
 
 type Book struct {
 	gorm.Model
-	Name        string `gorm:""json:"name"`
-	Author      string `json:"author"`
-	Publication string `json:"publication"`
+	Name        string `gorm:""json:"name" validate:"required"`
+	Author      string `json:"author" validate:"required"`
+	Publication string `json:"publication" validate:"required"`
 }
 
 func init() {
