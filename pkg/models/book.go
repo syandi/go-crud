@@ -3,12 +3,10 @@ package models
 import (
 	"crud/pkg/config"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/jinzhu/gorm"
 )
 
 var db *gorm.DB
-var validate *validator.Validate
 
 type Book struct {
 	gorm.Model
